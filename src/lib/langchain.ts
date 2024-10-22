@@ -6,9 +6,8 @@ import {
   experimental_StreamData,
   LangChainStream,
 } from "ai-stream-experimental";
-import { streamingModel, nonStreamingModel } from "./llm"; // Ensure these are exported from llm.ts
+import { streamingModel, nonStreamingModel } from "./llm";
 import { STANDALONE_QUESTION_TEMPLATE, QA_TEMPLATE } from "./prompt-templates";
-import { BaseLanguageModel } from "@langchain/core/language_models/base"; // Ensure this import is correct
 
 type callChainArgs = {
   question: string;
@@ -17,39 +16,48 @@ type callChainArgs = {
 
 export async function callChain({ question, chatHistory }: callChainArgs) {
   try {
+    // Sanitize the input question
     const sanitizedQuestion = question.trim().replaceAll("\n", " ");
+    
+    // Initialize Pinecone client and vector store
     const pineconeClient = await getPineconeClient();
     const vectorStore = await getVectorStore(pineconeClient);
 
+    // Setup LangChain stream and data
     const { stream, handlers } = LangChainStream({
       experimental_streamData: true,
     });
     const data = new experimental_StreamData();
 
-    // Ensure both models are compatible with the expected BaseLanguageModel
+    // Create the retriever from the vector store
+    const retriever = vectorStore.asRetriever({ k: 5 }); // Use top-k results
+
+    // Initialize the conversational retrieval QA chain
     const chain = ConversationalRetrievalQAChain.fromLLM(
-      streamingModel as any, // Explicitly cast if needed
-      vectorStore.asRetriever() as any,
+      streamingModel,  // Ensure this is a valid model instance
+      retriever,
       {
         qaTemplate: QA_TEMPLATE,
         questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
         returnSourceDocuments: true,
         questionGeneratorChainOptions: {
-          llm: nonStreamingModel as any, // Explicitly cast if needed
+          llm: nonStreamingModel,  // Ensure non-streaming model is properly configured
         },
       }
     );
 
     try {
+      // Call the retrieval chain
       const res = await chain.call(
         { question: sanitizedQuestion, chat_history: chatHistory },
-        [handlers]
+        [handlers]  // Stream the response if necessary
       );
 
+      // Extract source documents and append their content
       const sourceDocuments = res?.sourceDocuments || [];
       const firstTwoDocuments = sourceDocuments.slice(0, 2);
       const pageContents = firstTwoDocuments.map(
-        ({ pageContent }: { pageContent: string }) => pageContent
+        (doc: { pageContent: string }) => doc.pageContent || "No content"
       );
 
       console.log("Already appended: ", data);
@@ -60,11 +68,12 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
       throw new Error("Failed to retrieve data from the chain!");
     }
 
-    // Return the readable stream
+    // Return the streaming text response
     return new StreamingTextResponse(stream, {}, data);
   } catch (e) {
     console.error("Error in callChain:", e);
     throw new Error("Call chain method failed to execute successfully!");
   }
 }
+
 
