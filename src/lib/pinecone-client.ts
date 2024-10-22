@@ -1,9 +1,7 @@
-import Pinecone from "@pinecone-database/pinecone";
+import { Pinecone } from "@pinecone-database/pinecone"; // Import as a named export
 import { env } from "./config";
 
-
-
-// Initialize index and ready to be accessed.
+// Initialize and return the Pinecone client
 export async function getPineconeClient() {
   try {
     const pineconeClient = new Pinecone({
@@ -11,8 +9,9 @@ export async function getPineconeClient() {
     });
     return pineconeClient;
   } catch (error) {
-    console.error("error", error);
+    console.error("Error initializing Pinecone Client:", error);
     throw new Error("Failed to initialize Pinecone Client");
   }
 }
+
 
