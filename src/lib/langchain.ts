@@ -30,18 +30,18 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
     const data = new experimental_StreamData();
 
     // Create the retriever from the vector store
-    const retriever = vectorStore.asRetriever({ k: 5 }); // Use top-k results
+    const retriever = vectorStore.asRetriever(); // Use top-k results
 
     // Initialize the conversational retrieval QA chain
     const chain = ConversationalRetrievalQAChain.fromLLM(
-      streamingModel as any,  // Ensure this is a valid model instance
-      retriever as any,
+      streamingModel,  // Ensure this is a valid model instance
+      retriever,
       {
         qaTemplate: QA_TEMPLATE,
         questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
         returnSourceDocuments: true,
         questionGeneratorChainOptions: {
-          llm: nonStreamingModel as any,  // Ensure non-streaming model is properly configured
+          llm: nonStreamingModel,  // Ensure non-streaming model is properly configured
         },
       }
     );
