@@ -16,7 +16,6 @@ type callChainArgs = {
 
 export async function callChain({ question, chatHistory }: callChainArgs) {
   try {
-    // Open AI recommendation
     const sanitizedQuestion = question.trim().replaceAll("\n", " ");
     const pineconeClient = await getPineconeClient();
     const vectorStore = await getVectorStore(pineconeClient);
@@ -25,21 +24,21 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
     });
     const data = new experimental_StreamData();
 
+    // Ensure models are treated as BaseLanguageModel types
     const chain = ConversationalRetrievalQAChain.fromLLM(
-      streamingModel,
+      streamingModel as unknown as BaseLanguageModel,  // Safe type cast
       vectorStore.asRetriever(),
       {
         qaTemplate: QA_TEMPLATE,
         questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
-        returnSourceDocuments: true, //default 4
+        returnSourceDocuments: true,
         questionGeneratorChainOptions: {
-          llm: nonStreamingModel,
+          llm: nonStreamingModel as unknown as BaseLanguageModel,
         },
       }
     );
 
-    // Question using chat-history
-    // Reference https://js.langchain.com/docs/modules/chains/popular/chat_vector_db#externally-managed-memory
+    // Execute the chain with question and chat history
     chain
       .call(
         {
@@ -49,22 +48,20 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
         [handlers]
       )
       .then(async (res) => {
-        const sourceDocuments = res?.sourceDocuments;
+        const sourceDocuments = res?.sourceDocuments || [];
         const firstTwoDocuments = sourceDocuments.slice(0, 2);
         const pageContents = firstTwoDocuments.map(
           ({ pageContent }: { pageContent: string }) => pageContent
         );
-        console.log("already appended ", data);
-        data.append({
-          sources: pageContents,
-        });
+        console.log("Already appended: ", data);
+        data.append({ sources: pageContents });
         data.close();
       });
 
     // Return the readable stream
     return new StreamingTextResponse(stream, {}, data);
   } catch (e) {
-    console.error(e);
+    console.error("Error in callChain:", e);
     throw new Error("Call chain method failed to execute successfully!!");
   }
 }
