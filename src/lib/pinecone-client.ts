@@ -4,7 +4,7 @@ import { env } from "./config";
 
 
 // Initialize index and ready to be accessed.
-export async function initPineconeClient() {
+export async function getPineconeClient() {
   try {
     const pineconeClient = new Pinecone({
       apiKey: env.PINECONE_API_KEY,
