@@ -1,10 +1,10 @@
 import Pinecone from "@pinecone-database/pinecone";
+import PineconeClient from "@pinecone-database/pinecone";
 import { env } from "./config";
 import { delay } from "./utils";
 
 // Declare the pineconeClientInstance variable at a higher scope
-let pineconeClientInstance=new Pinecone();
-
+let pineconeClientInstance: PineconeClient | null = null;
 // Initialize index and ready to be accessed.
 async function initPineconeClient() {
   try {
