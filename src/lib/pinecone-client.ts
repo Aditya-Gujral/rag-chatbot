@@ -30,10 +30,10 @@ async function initPineconeClient() {
   try {
     const pineconeClient = new PineconeClient();
     await pineconeClient.init({
-      apiKey: env.PINECONE_API_KEY,
-      environment: env.PINECONE_ENVIRONMENT,
+      apiKey: env.PINECONE_API_KEY!,
+      environment: env.PINECONE_ENVIRONMENT!,
     });
-    const indexName = env.PINECONE_INDEX_NAME;
+    const indexName = env.PINECONE_INDEX_NAME!;
 
     const existingIndexes = await pineconeClient.listIndexes();
 
