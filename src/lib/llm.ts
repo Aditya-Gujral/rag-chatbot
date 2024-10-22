@@ -2,7 +2,7 @@ import {
   BaseLanguageModel,
   BaseLanguageModelInterface,
   BaseLanguageModelInput,
-} from "@langchain/core/language_models/base;
+} from "@langchain/core/language_models/base"; // Closing quote added here
 
 import { ChatOpenAI } from "@langchain/openai";
 
@@ -16,3 +16,4 @@ const nonStreamingModel: BaseLanguageModel = new ChatOpenAI({
   modelName: "gpt-3.5-turbo",
   temperature: 0,
 });
+
