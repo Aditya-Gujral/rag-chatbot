@@ -8,6 +8,7 @@ import {
 } from "ai-stream-experimental";
 import { streamingModel, nonStreamingModel } from "./llm";
 import { STANDALONE_QUESTION_TEMPLATE, QA_TEMPLATE } from "./prompt-templates";
+import { BaseLanguageModel } from "langchain/schema"; // Importing the correct type
 
 type callChainArgs = {
   question: string;
@@ -19,49 +20,50 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
     const sanitizedQuestion = question.trim().replaceAll("\n", " ");
     const pineconeClient = await getPineconeClient();
     const vectorStore = await getVectorStore(pineconeClient);
+
     const { stream, handlers } = LangChainStream({
       experimental_streamData: true,
     });
     const data = new experimental_StreamData();
 
-    // Ensure models are treated as BaseLanguageModel types
+    // Properly cast models to BaseLanguageModel
     const chain = ConversationalRetrievalQAChain.fromLLM(
-      streamingModel as unknown as BaseLanguageModel,  // Safe type cast
+      streamingModel as BaseLanguageModel,
       vectorStore.asRetriever(),
       {
         qaTemplate: QA_TEMPLATE,
         questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
         returnSourceDocuments: true,
         questionGeneratorChainOptions: {
-          llm: nonStreamingModel as unknown as BaseLanguageModel,
+          llm: nonStreamingModel as BaseLanguageModel,
         },
       }
     );
 
-    // Execute the chain with question and chat history
-    chain
-      .call(
-        {
-          question: sanitizedQuestion,
-          chat_history: chatHistory,
-        },
+    try {
+      const res = await chain.call(
+        { question: sanitizedQuestion, chat_history: chatHistory },
         [handlers]
-      )
-      .then(async (res) => {
-        const sourceDocuments = res?.sourceDocuments || [];
-        const firstTwoDocuments = sourceDocuments.slice(0, 2);
-        const pageContents = firstTwoDocuments.map(
-          ({ pageContent }: { pageContent: string }) => pageContent
-        );
-        console.log("Already appended: ", data);
-        data.append({ sources: pageContents });
-        data.close();
-      });
+      );
+
+      const sourceDocuments = res?.sourceDocuments || [];
+      const firstTwoDocuments = sourceDocuments.slice(0, 2);
+      const pageContents = firstTwoDocuments.map(
+        ({ pageContent }: { pageContent: string }) => pageContent
+      );
+
+      console.log("Already appended: ", data);
+      data.append({ sources: pageContents });
+      data.close();
+    } catch (error) {
+      console.error("Error during chain call:", error);
+      throw new Error("Failed to retrieve data from the chain!");
+    }
 
     // Return the readable stream
     return new StreamingTextResponse(stream, {}, data);
   } catch (e) {
     console.error("Error in callChain:", e);
-    throw new Error("Call chain method failed to execute successfully!!");
+    throw new Error("Call chain method failed to execute successfully!");
   }
 }
