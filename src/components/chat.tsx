@@ -1,6 +1,6 @@
 "use client";
 
-import { scrollToBottom, initialMessages, getSources } from "@/lib/utils";
+import { scrollToBottom, initialMessages} from "@/lib/utils";
 import { ChatLine } from "./chat-line";
 import { useChat, Message } from "ai-stream-experimental/react";
 import { Input } from "./ui/input";
