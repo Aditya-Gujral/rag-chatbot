@@ -35,7 +35,7 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
     // Initialize the conversational retrieval QA chain
     const chain = ConversationalRetrievalQAChain.fromLLM(
       streamingModel as any,  // Ensure this is a valid model instance
-      retriever,
+      retriever as any,
       {
         qaTemplate: QA_TEMPLATE,
         questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
