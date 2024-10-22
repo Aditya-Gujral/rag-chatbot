@@ -32,7 +32,7 @@ interface ChatLineProps extends Partial<Message> {
 export function ChatLine({
   role = "assistant",
   content,
-  sources,
+  //sources,
 }: ChatLineProps) {
   if (!content) {
     return null;
@@ -57,7 +57,7 @@ export function ChatLine({
           <Balancer>{formattedMessage}</Balancer>
         </CardContent>
         <CardFooter>
-          <CardDescription className="w-full">
+          {/*<CardDescription className="w-full">
             {sources && sources.length ? (
               <Accordion type="single" collapsible className="w-full">
                 {sources.map((source, index) => (
@@ -74,7 +74,7 @@ export function ChatLine({
             ) : (
               <></>
             )}
-          </CardDescription>
+          </CardDescription>*/}
         </CardFooter>
       </Card>
     </div>

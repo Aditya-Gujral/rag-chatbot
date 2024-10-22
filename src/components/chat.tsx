@@ -28,7 +28,7 @@ export function Chat() {
             role={role}
             content={content}
             // Start from the third message of the assistant
-            sources={data?.length ? getSources(data, role, index) : []}
+            //sources={data?.length ? getSources(data, role, index) : []}
           />
         ))}
       </div>
@@ -36,7 +36,7 @@ export function Chat() {
       <form onSubmit={handleSubmit} className="p-4 flex clear-both">
         <Input
           value={input}
-          placeholder={"Type to chat with AI..."}
+          placeholder={"Type to chat with CLEONA..."}
           onChange={handleInputChange}
           className="mr-2"
         />
