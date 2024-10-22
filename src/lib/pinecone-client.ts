@@ -1,47 +1,31 @@
-import { PineconeClient } from "@pinecone-database/pinecone";
+import { Pinecone } from "@pinecone-database/pinecone";
 import { env } from "./config";
-import { delay } from "./utils";
 
-let pineconeClientInstance: PineconeClient | null = null;
+// Declare the pineconeClientInstance variable at a higher scope
+let pineconeClientInstance: Pinecone | null = null;
 
-// Create pineconeIndex if it doesn't exist
-async function createIndex(client: PineconeClient, indexName: string) {
+// Initialize Pinecone client and prepare the index for access
+async function initPineconeClient(): Promise<Pinecone> {
   try {
-    await client.createIndex({
-      createRequest: {
-        name: indexName,
-        dimension: 1536,
-        metric: "cosine",
-      },
-    });
-    console.log(
-      `Waiting for ${env.INDEX_INIT_TIMEOUT} seconds for index initialization to complete...`
-    );
-    await delay(env.INDEX_INIT_TIMEOUT);
-    console.log("Index created !!");
-  } catch (error) {
-    console.error("error ", error);
-    throw new Error("Index creation failed");
-  }
-}
+    console.log('Initializing Pinecone Client...');
 
-// Initialize index and ready to be accessed.
-async function initPineconeClient() {
-  try {
-    const pineconeClient = new PineconeClient();
+    // Initialize the Pinecone client with the API key and environment
+    const pineconeClient = new Pinecone();
     await pineconeClient.init({
       apiKey: env.PINECONE_API_KEY as string,
       environment: env.PINECONE_ENVIRONMENT as string,
     });
-    const indexName = env.PINECONE_INDEX_NAME as string;
+
+    console.log('Pinecone Client Initialized');
     return pineconeClient;
   } catch (error) {
-    console.error("error", error);
+    console.error("Error initializing Pinecone client:", error);
     throw new Error("Failed to initialize Pinecone Client");
   }
 }
 
-export async function getPineconeClient() {
+// Function to get the Pinecone client instance (Singleton pattern)
+export async function getPineconeClient(): Promise<Pinecone> {
   if (!pineconeClientInstance) {
     pineconeClientInstance = await initPineconeClient();
   }
