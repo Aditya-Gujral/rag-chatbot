@@ -3,7 +3,7 @@ import { env } from "./config";
 import { delay } from "./utils";
 
 // Declare the pineconeClientInstance variable at a higher scope
-let pineconeClientInstance: null;
+let pineconeClientInstance: Pinecone();
 
 // Initialize index and ready to be accessed.
 async function initPineconeClient() {
