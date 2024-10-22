@@ -14,59 +14,57 @@ type callChainArgs = {
   chatHistory: string;
 };
 
-let pineconeClientInstance;
-
-async function getPineconeClient() {
-  if (!pineconeClientInstance) {
-    pineconeClientInstance = await createPineconeClient(); // Your client creation logic
-  }
-  return pineconeClientInstance;
-}
-
 export async function callChain({ question, chatHistory }: callChainArgs) {
   try {
+    // Open AI recommendation
     const sanitizedQuestion = question.trim().replaceAll("\n", " ");
     const pineconeClient = await getPineconeClient();
     const vectorStore = await getVectorStore(pineconeClient);
-
     const { stream, handlers } = LangChainStream({
       experimental_streamData: true,
     });
     const data = new experimental_StreamData();
-    
-    const retriever = vectorStore.asRetriever({ k: 3 }); // Limit results
 
     const chain = ConversationalRetrievalQAChain.fromLLM(
       streamingModel as any,
-      retriever as any,
+      vectorStore.asRetriever() as any,
       {
         qaTemplate: QA_TEMPLATE,
         questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
-        returnSourceDocuments: true,
+        returnSourceDocuments: true, //default 4
         questionGeneratorChainOptions: {
           llm: nonStreamingModel as any,
         },
       }
     );
 
-    const res = await chain.call(
-      { question: sanitizedQuestion, chat_history: chatHistory },
-      [handlers]
-    );
+    // Question using chat-history
+    // Reference https://js.langchain.com/docs/modules/chains/popular/chat_vector_db#externally-managed-memory
+    chain
+      .call(
+        {
+          question: sanitizedQuestion,
+          chat_history: chatHistory,
+        },
+        [handlers]
+      )
+      .then(async (res) => {
+        const sourceDocuments = res?.sourceDocuments;
+        const firstTwoDocuments = sourceDocuments.slice(0, 2);
+        const pageContents = firstTwoDocuments.map(
+          ({ pageContent }: { pageContent: string }) => pageContent
+        );
+        console.log("already appended ", data);
+        data.append({
+          sources: pageContents,
+        });
+        data.close();
+      });
 
-    const sourceDocuments = res?.sourceDocuments || [];
-    const firstTwoDocuments = sourceDocuments.slice(0, 2);
-    const pageContents = firstTwoDocuments.map(
-      (doc: { pageContent: string }) => doc.pageContent || "No content"
-    );
-
-    data.append({ sources: pageContents });
-    data.close();
-
+    // Return the readable stream
     return new StreamingTextResponse(stream, {}, data);
   } catch (e) {
-    console.error("Error in callChain:", e);
-    throw new Error("Call chain method failed to execute successfully!");
+    console.error(e);
+    throw new Error("Call chain method failed to execute successfully!!");
   }
 }
-
