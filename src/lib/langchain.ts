@@ -8,7 +8,11 @@ import {
 } from "ai-stream-experimental";
 import { streamingModel, nonStreamingModel } from "./llm";
 import { STANDALONE_QUESTION_TEMPLATE, QA_TEMPLATE } from "./prompt-templates";
-import { BaseLanguageModel } from "langchain-core/src/language_models/base"; // Correct import path
+import {
+  BaseLanguageModel,
+  BaseLanguageModelInterface,
+  BaseLanguageModelInput,
+} from "@langchain/core/language_models/base";
 
 type callChainArgs = {
   question: string;
