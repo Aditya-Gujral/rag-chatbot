@@ -12,7 +12,7 @@ import {
   BaseLanguageModel,
   BaseLanguageModelInterface,
   BaseLanguageModelInput,
-} from "@langchain/core/language_models/base";
+} from "@langchain/core";
 
 type callChainArgs = {
   question: string;
