@@ -32,17 +32,17 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
 
     // Properly cast models to BaseLanguageModel
     const chain = ConversationalRetrievalQAChain.fromLLM(
-      streamingModel as BaseLanguageModel,
-      vectorStore.asRetriever(),
-      {
-        qaTemplate: QA_TEMPLATE,
-        questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
-        returnSourceDocuments: true,
-        questionGeneratorChainOptions: {
-          llm: nonStreamingModel as BaseLanguageModel,
-        },
-      }
-    );
+  streamingModel as unknown as BaseLanguageModel<any, any>, // Cast to match the expected type
+  vectorStore.asRetriever(),
+  {
+    qaTemplate: QA_TEMPLATE,
+    questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
+    returnSourceDocuments: true,
+    questionGeneratorChainOptions: {
+      llm: nonStreamingModel as unknown as BaseLanguageModel<any, any>, // Cast here as well
+    },
+  }
+);
 
     try {
       const res = await chain.call(
