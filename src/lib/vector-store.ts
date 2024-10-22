@@ -2,6 +2,7 @@ import { env } from './config';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { PineconeStore } from '@langchain/pinecone';
 import { PineconeClient } from '@pinecone-database/pinecone';
+import { BaseRetriever } from '@langchain/core/retrievers'; // Ensure this import is correct
 
 export async function embedAndStoreDocs(
   client: PineconeClient,
@@ -24,8 +25,8 @@ export async function embedAndStoreDocs(
   }
 }
 
-// Returns vector-store handle to be used a retrievers on langchains
-export async function getVectorStore(client: PineconeClient) {
+// Returns vector-store handle to be used as retrievers on langchains
+export async function getVectorStore(client: PineconeClient): Promise<BaseRetriever> {
   try {
     const embeddings = new OpenAIEmbeddings();
     const index = client.Index(env.PINECONE_INDEX_NAME);
@@ -35,7 +36,7 @@ export async function getVectorStore(client: PineconeClient) {
       textKey: 'text',
     });
 
-    return vectorStore;
+    return vectorStore as BaseRetriever; // Assert the type here
   } catch (error) {
     console.log('error ', error);
     throw new Error('Something went wrong while getting vector store !');
