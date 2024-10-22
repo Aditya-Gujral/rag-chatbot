@@ -4,6 +4,8 @@ import {
   BaseLanguageModelInput,
 } from "@langchain/core/language_models/base;
 
+import { ChatOpenAI } from "@langchain/openai";
+
 const streamingModel: BaseLanguageModel = new ChatOpenAI({
   modelName: "gpt-3.5-turbo",
   streaming: true,
