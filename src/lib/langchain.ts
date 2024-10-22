@@ -29,4 +29,41 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
     // Properly cast models to BaseLanguageModel
     const chain = ConversationalRetrievalQAChain.fromLLM(
       streamingModel as BaseLanguageModel,
-      vectorStore
+      vectorStore.asRetriever(),
+      {
+        qaTemplate: QA_TEMPLATE,
+        questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
+        returnSourceDocuments: true,
+        questionGeneratorChainOptions: {
+          llm: nonStreamingModel as BaseLanguageModel,
+        },
+      }
+    );
+
+    try {
+      const res = await chain.call(
+        { question: sanitizedQuestion, chat_history: chatHistory },
+        [handlers]
+      );
+
+      const sourceDocuments = res?.sourceDocuments || [];
+      const firstTwoDocuments = sourceDocuments.slice(0, 2);
+      const pageContents = firstTwoDocuments.map(
+        ({ pageContent }: { pageContent: string }) => pageContent
+      );
+
+      console.log("Already appended: ", data);
+      data.append({ sources: pageContents });
+      data.close();
+    } catch (error) {
+      console.error("Error during chain call:", error);
+      throw new Error("Failed to retrieve data from the chain!");
+    }
+
+    // Return the readable stream
+    return new StreamingTextResponse(stream, {}, data);
+  } catch (e) {
+    console.error("Error in callChain:", e);
+    throw new Error("Call chain method failed to execute successfully!");
+  }
+}
