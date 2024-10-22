@@ -6,13 +6,9 @@ import {
   experimental_StreamData,
   LangChainStream,
 } from "ai-stream-experimental";
-import { streamingModel, nonStreamingModel } from "./llm";
+import { streamingModel, nonStreamingModel } from "./llm"; // Ensure these are exported from llm.ts
 import { STANDALONE_QUESTION_TEMPLATE, QA_TEMPLATE } from "./prompt-templates";
-import {
-  BaseLanguageModel,
-  BaseLanguageModelInterface,
-  BaseLanguageModelInput,
-} from "@langchain/core/language_models/base";
+import { BaseLanguageModel } from "@langchain/core/language_models/base"; // Ensure this import is correct
 
 type callChainArgs = {
   question: string;
@@ -30,19 +26,19 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
     });
     const data = new experimental_StreamData();
 
-    // Properly cast models to BaseLanguageModel
+    // Ensure both models are compatible with the expected BaseLanguageModel
     const chain = ConversationalRetrievalQAChain.fromLLM(
-  streamingModel,// Cast to match the expected type
-  vectorStore.asRetriever(),
-  {
-    qaTemplate: QA_TEMPLATE,
-    questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
-    returnSourceDocuments: true,
-    questionGeneratorChainOptions: {
-      llm: nonStreamingModel, // Cast here as well
-    },
-  }
-);
+      streamingModel as BaseLanguageModel, // Explicitly cast if needed
+      vectorStore.asRetriever(),
+      {
+        qaTemplate: QA_TEMPLATE,
+        questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
+        returnSourceDocuments: true,
+        questionGeneratorChainOptions: {
+          llm: nonStreamingModel as BaseLanguageModel, // Explicitly cast if needed
+        },
+      }
+    );
 
     try {
       const res = await chain.call(
@@ -71,3 +67,4 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
     throw new Error("Call chain method failed to execute successfully!");
   }
 }
+
