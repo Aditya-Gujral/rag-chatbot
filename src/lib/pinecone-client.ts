@@ -1,19 +1,15 @@
-import Pinecone from "@pinecone-database/pinecone";
+import { Pinecone } from "@pinecone-database/pinecone";
 import { env } from "./config";
-import { delay } from "./utils";
 
 // Declare the pineconeClientInstance variable at a higher scope
-let pineconeClientInstance: Pinecone | null = null;; // Add this line
+let pineconeClientInstance: Pinecone | null = null; // Declare the type
 
 // Initialize index and ready to be accessed.
 async function initPineconeClient() {
   try {
-    console.log('#');
     const pineconeClient = new Pinecone({
       apiKey: env.PINECONE_API_KEY,
     });
-    const indexName = env.PINECONE_INDEX_NAME;
-    console.log('#');
     return pineconeClient;
   } catch (error) {
     console.error("error", error);
@@ -28,3 +24,4 @@ export async function getPineconeClient() {
 
   return pineconeClientInstance;
 }
+
