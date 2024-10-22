@@ -28,14 +28,14 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
 
     // Ensure both models are compatible with the expected BaseLanguageModel
     const chain = ConversationalRetrievalQAChain.fromLLM(
-      streamingModel as BaseLanguageModel, // Explicitly cast if needed
+      streamingModel as any, // Explicitly cast if needed
       vectorStore.asRetriever(),
       {
         qaTemplate: QA_TEMPLATE,
         questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
         returnSourceDocuments: true,
         questionGeneratorChainOptions: {
-          llm: nonStreamingModel as BaseLanguageModel, // Explicitly cast if needed
+          llm: nonStreamingModel as any, // Explicitly cast if needed
         },
       }
     );
