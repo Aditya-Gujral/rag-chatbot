@@ -10,11 +10,11 @@ async function initPineconeClient(): Promise<Pinecone> {
     console.log('Initializing Pinecone Client...');
 
     // Initialize the Pinecone client with the API key and environment
-    const pineconeClient = new Pinecone();
-    await pineconeClient.init({
+    await const pineconeClient = new Pinecone({
       apiKey: env.PINECONE_API_KEY as string,
       environment: env.PINECONE_ENVIRONMENT as string,
     });
+    
 
     console.log('Pinecone Client Initialized');
     return pineconeClient;
