@@ -26,14 +26,14 @@ export async function callChain({ question, chatHistory }: callChainArgs) {
     const data = new experimental_StreamData();
 
     const chain = ConversationalRetrievalQAChain.fromLLM(
-      streamingModel,
-      vectorStore.asRetriever(),
+      streamingModel as any,
+      vectorStore.asRetriever() as any,
       {
         qaTemplate: QA_TEMPLATE,
         questionGeneratorTemplate: STANDALONE_QUESTION_TEMPLATE,
         returnSourceDocuments: true, //default 4
         questionGeneratorChainOptions: {
-          llm: nonStreamingModel,
+          llm: nonStreamingModel as any,
         },
       }
     );

@@ -1,27 +1,30 @@
 import { Pinecone } from "@pinecone-database/pinecone";
 import { env } from "./config";
-import { delay } from "./utils";
 
 // Declare the pineconeClientInstance variable at a higher scope
-let pineconeClientInstance; // Add this line
+let pineconeClientInstance: Pinecone | null = null;
 
-// Initialize index and ready to be accessed.
-async function initPineconeClient() {
+// Initialize Pinecone client and prepare the index for access
+async function initPineconeClient(): Promise<Pinecone> {
   try {
-    console.log('#');
+    console.log('Initializing Pinecone Client...');
+
+    // Initialize the Pinecone client with the API key and environment
     const pineconeClient = new Pinecone({
-      apiKey: env.PINECONE_API_KEY,
+      apiKey: env.PINECONE_API_KEY as string,
     });
-    const indexName = env.PINECONE_INDEX_NAME;
-    console.log('#');
+    
+
+    console.log('Pinecone Client Initialized');
     return pineconeClient;
   } catch (error) {
-    console.error("error", error);
+    console.error("Error initializing Pinecone client:", error);
     throw new Error("Failed to initialize Pinecone Client");
   }
 }
 
-export async function getPineconeClient() {
+// Function to get the Pinecone client instance (Singleton pattern)
+export async function getPineconeClient(): Promise<Pinecone> {
   if (!pineconeClientInstance) {
     pineconeClientInstance = await initPineconeClient();
   }
